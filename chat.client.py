@@ -37,7 +37,7 @@ def send_message():
 def start_client():
     global client, encryptor, decryptor, input_box, chat_box
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect(('172.17.108.180', 9999))  # Replace with actual server IP
+    client.connect(('Enter Server Ip Here', 9999))  # Replace with actual server IP
 
     # Receive the server's public key
     server_public_key_pem = client.recv(1024)
