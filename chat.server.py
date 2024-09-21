@@ -41,22 +41,33 @@ def handle_client(client_socket):
         # Initialize the AES cipher
         cipher = Cipher(algorithms.AES(aes_key), modes.CFB(iv), backend=default_backend())
         decryptor = cipher.decryptor()
+        encryptor = cipher.encryptor()
+
+        # Start listening for messages from the client in a separate thread
+        threading.Thread(target=receive_messages, args=(client_socket, decryptor), daemon=True).start()
 
         while True:
-            encrypted_message = client_socket.recv(1024)
-            if not encrypted_message:
-                break
-            try:
-                decrypted_message = decryptor.update(encrypted_message)
-                print(f"Received: {decrypted_message.decode('utf-8', errors='ignore')}")
-            except Exception as e:
-                print(f"Decryption failed: {e}")
-                break
+            # Server input to send messages to the client
+            reply_message = input("Enter reply message for client: ")
+            encrypted_reply = encryptor.update(reply_message.encode('utf-8'))
+            client_socket.send(encrypted_reply)
 
     except Exception as e:
         print(f"An error occurred: {e}")
     finally:
         client_socket.close()
+
+def receive_messages(client_socket, decryptor):
+    while True:
+        try:
+            encrypted_message = client_socket.recv(1024)
+            if not encrypted_message:
+                break
+            decrypted_message = decryptor.update(encrypted_message)
+            print(f"Client: {decrypted_message.decode('utf-8', errors='ignore')}")
+        except Exception as e:
+            print(f"Error receiving message: {e}")
+            break
 
 def start_server():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
